@@ -24,7 +24,7 @@ const images = core.getInput("images");
 const annotations = core.getInput("annotations");
 const token = core.getInput("github-token");
 
-// Create a custom Octokit constructor with the retry and throttling plugins
+// Create a custom Octokit constructor with the retry and throttling plugins installed
 const OctokitWithPlugins = GitHub.plugin(retry, throttling);
 
 console.log("created kit");
