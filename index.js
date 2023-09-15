@@ -134,7 +134,7 @@ async function run() {
     }
 
     // Parse to JSON to handle safely
-    const imageAsJson = JSON.parse(body);
+    const imageAsJson = JSON.parse(images);
     const imageValidationErrors = validateImagesArray(imageAsJson);
 
     if (imageValidationErrors.length <= 0) {
