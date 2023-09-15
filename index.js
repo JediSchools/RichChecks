@@ -189,7 +189,13 @@ async function run() {
 
     core.endGroup();
   } catch (error) {
-    core.error(`Error ${error}, action did not succeed`);
+    if (error.includes("Resource not accessible by integration")) {
+      core.error(
+        "Ensure permissions are correct, was not able to create check"
+      );
+    } else {
+      core.error(`Error ${error}, action did not succeed`);
+    }
   }
 }
 
