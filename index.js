@@ -24,7 +24,7 @@ const annotations = core.getInput("annotations");
 const token = core.getInput("github-token");
 
 // Create a custom Octokit constructor with the retry and throttling plugins
-const MyOctokit = github.GitHub.plugin(retry, throttling);
+const MyOctokit = github.plugin(retry, throttling);
 
 // initiate the client with the token and plugins
 let octokit = new MyOctokit({
