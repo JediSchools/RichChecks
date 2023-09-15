@@ -1,5 +1,6 @@
 name: 'Update/Create a Rich Check'
 description: "Rich checks from GitHub Mastery Book"
+author: "JediSchools"
 inputs:
   name:
     description: 'The name of the check'
@@ -46,109 +47,7 @@ branding:
 outputs:
   check-run-id:
     description: 'contains the check run id of the check created or updated'
-    value: ${{ steps.create-check.outputs.result || steps.update-check.outputs.result }}
 
 runs:
-  using: "composite"
-  steps:
-  - name: Set to update to completed
-    if: ${{ inputs.check-run-id != null }}
-    id: update-check
-    uses: actions/github-script@v6
-    with:
-      result-encoding: string
-      github-token: ${{ inputs.github-token }}
-      script: |
-        const commitSha = "${{ github.event.pull_request.head.sha || github.sha }}";
-        const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
-        const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
-        const name = "${{ inputs.name || github.event.repository.name }}";
-        const conclusion = "${{ inputs.conclusion }}".trim();
-        const shouldFailForNeutral = ("${{ inputs.fail-on-neutral }}" === "true");
-        const shouldFailForNonSuccess = ("${{ inputs.fail-on-error }}" === "true");
-        const successStates = ["neutral", "success"];
-        
-        let body = {
-          owner,
-          repo,
-          name,
-          head_sha: commitSha,
-          check_run_id: "${{ inputs.check-run-id }}",
-          status: "${{ inputs.status }}",
-          output: {
-            title: "${{ inputs.title }}",
-            summary: "${{ inputs.summary }}",
-            text: "${{ inputs.details }}"
-          }
-        };
-        
-        if("${{ inputs.conclusion }}" !== ""){
-          body.conclusion = "${{ inputs.conclusion }}";
-        }
-        
-        if("${{ inputs.images }}" !== ""){
-          body.images = "${{ inputs.images }}";
-        }
-
-        if(conclusion !== ""){
-          if(shouldFailForNonSuccess && !successStates.includes(conclusion)){
-            core.setFailed("check failed for non successive state");
-          }
-          if(shouldFailForNeutral && conclusion == "neutral"){
-            core.setFailed("check failed for non successive state");
-          }
-        }
-        
-        // update the check
-        const check = await github.rest.checks.update(body);
-        return check.data.id
-  - name: step to create
-    if: ${{ inputs.check-run-id == null }}
-    id: create-check
-    uses: actions/github-script@v6
-    with:
-      result-encoding: string
-      github-token: ${{ inputs.github-token }}
-      script: |
-        const commitSha = "${{ github.event.pull_request.head.sha || github.sha }}";
-        const owner = process.env.GITHUB_REPOSITORY.split('/')[0];
-        const repo = process.env.GITHUB_REPOSITORY.split('/')[1];
-        const name = "${{ inputs.name || github.event.repository.name }}";
-        const conclusion = "${{ inputs.conclusion }}".trim();
-        const shouldFailForNeutral = ("${{ inputs.fail-on-neutral }}" === "true");
-        const shouldFailForNonSuccess = ("${{ inputs.fail-on-error }}" === "true");
-        const successStates = ["neutral", "success"];
-        
-        let body = {
-          owner,
-          repo,
-          name,
-          head_sha: commitSha,
-          status: "${{ inputs.status }}",
-          output: {
-            title: "${{ inputs.title }}",
-            summary: "${{ inputs.summary }}",
-            text: "${{ inputs.details }}"
-          }
-        };
-        
-        if(conclusion !== ""){
-          body.conclusion = conclusion;
-        }
-        
-        if("${{ inputs.images }}" !== ""){
-          body.images = "${{ inputs.images }}";
-        }
-
-        if(conclusion !== ""){
-          if(shouldFailForNonSuccess && !successStates.includes(conclusion)){
-            core.setFailed("check failed for non successive state");
-          }
-          if(shouldFailForNeutral && conclusion == "neutral"){
-            core.setFailed("check failed for non successive state");
-          }
-        }
-        
-        // Create the check
-        const check = await github.rest.checks.create(body);
-        return check.data.id
+  using: "node20"
+  main: "dist/index.js"
