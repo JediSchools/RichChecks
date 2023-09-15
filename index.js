@@ -1,5 +1,7 @@
 const core = require("@actions/core");
 const github = require("@actions/github");
+const { retry } = require("@octokit/plugin-retry");
+const { throttling } = require("@octokit/plugin-throttling");
 const { validateAnnotationsArray } = require("./validateAnnotationsArray");
 const { validateImagesArray } = require("./validateImagesArray");
 
@@ -21,8 +23,40 @@ const images = core.getInput("images");
 const annotations = core.getInput("annotations");
 const token = core.getInput("github-token");
 
-// initiate the client with the token
-const octokit = github.getOctokit(token);
+// initiate the client with the token and plugins
+let octokit = github.getOctokit(
+  {
+    auth: token,
+    // Enable retries and customize strategy
+    retry: {
+      do: true, // enable retries
+      retryAfter: 30, // time to wait between retries in seconds
+      maxRetries: 5, // max number of retries
+    },
+    // Enable throttling/rate-limiting
+    throttle: {
+      onRateLimit: (retryAfter, options) => {
+        core.warning(
+          `Request quota exhausted for your request ${options.method} ${options.url}`
+        );
+        if (options.request.retryCount === 0) {
+          // only retries once
+          console.log(`Retrying after ${retryAfter} seconds!`);
+          return true;
+        }
+      },
+      onAbuseLimit: (retryAfter, options) => {
+        // does not retry, only logs a warning
+        core.warning(
+          `Abuse detected for your request ${options.method} ${options.url}`
+        );
+      },
+    },
+  },
+  {},
+  retry, // retry plugin being added to the instance
+  throttling // throttling plugin being added to the instance
+);
 
 // Test inputs and if they fall back to defaults, inform the user that we've made an assumption here
 let name = core.getInput("name");
