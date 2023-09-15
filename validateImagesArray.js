@@ -14,20 +14,26 @@ function validateImagesArray(payload) {
     }
 
     // Check alt
-    if (!item.hasOwnProperty("alt") || typeof item.alt !== "string") {
+    if (
+      !Object.prototype.hasOwnProperty.call(item, "alt") ||
+      typeof item.alt !== "string"
+    ) {
       errors.push(`Item at index ${index} has an invalid 'alt'`);
     }
 
     // Check image_url
     if (
-      !item.hasOwnProperty("image_url") ||
+      !Object.prototype.hasOwnProperty.call(item, "image_url") ||
       typeof item.image_url !== "string"
     ) {
       errors.push(`Item at index ${index} has an invalid 'image_url'`);
     }
 
     // Check caption (optional)
-    if (item.hasOwnProperty("caption") && typeof item.caption !== "string") {
+    if (
+      Object.prototype.hasOwnProperty.call(item, "caption") &&
+      typeof item.caption !== "string"
+    ) {
       errors.push(`Item at index ${index} has an invalid 'caption'`);
     }
   });
