@@ -35,7 +35,12 @@ if (name == "") {
   name = github.context.repo.name;
 }
 
-let commitSha = github.context.payload.pull_request?.head_sha;
+const pull_request = github.context.payload.pull_request;
+let commitSha = "";
+if (pull_request !== undefined) {
+  commitSha = pull_request.head_sha;
+}
+
 if (commitSha == "" || commitSha === undefined) {
   // we're creating a warning for the property and advising to the default
   core.warning("no pull request detected, using head sha");
@@ -115,6 +120,8 @@ async function run() {
     };
 
     if (conclusion !== "") {
+      core.info("conclusion detected");
+      core.debug(conclusion);
       body.conclusion = conclusion;
     }
 
@@ -128,8 +135,11 @@ async function run() {
       validateAnnotationsArray(annotationsAsJson);
 
     if (annotationValidationErrors.length <= 0) {
+      core.info("successfully validated annotations");
       body.output.annotations = annotationsAsJson;
     } else {
+      core.error(annotationValidationErrors.join(" \n "));
+      core.debug(annotationsAsJson);
       core.warning("Annotations parsing error, did not add");
     }
 
@@ -138,6 +148,7 @@ async function run() {
     const imageValidationErrors = validateImagesArray(imageAsJson);
 
     if (imageValidationErrors.length <= 0) {
+      core.info("successfully validated images");
       body.output.images = imageAsJson;
     } else {
       core.warning("Images parsing error, did not add");
@@ -147,22 +158,28 @@ async function run() {
 
     core.startGroup("run command");
     if (existingCheckRunId === "") {
+      core.info("creating a check run");
       // Create the check
       const createCheck = await octokit.checks.create(body);
       checkRunId = createCheck.data.id;
+      core.info(`created a check run with the id of ${checkRunId}`);
     } else {
+      core.info("updating a check run");
       // add the existing check id
       body.check_run_id = existingCheckRunId;
 
       // update the check
       const updateCheck = await octokit.checks.update(body);
       checkRunId = updateCheck.data.id;
+      core.info(`updated a check run with the id of ${checkRunId}`);
     }
     core.setOutput("check-run-id", checkRunId);
 
+    core.info("action was successful");
+
     core.endGroup();
   } catch (error) {
-    core.error(`Error ${error}, action may still succeed though`);
+    core.error(`Error ${error}, action did not succeed`);
   }
 }
 
