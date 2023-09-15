@@ -128,7 +128,7 @@ async function run() {
     core.endGroup();
 
     core.startGroup("validate annotations and images");
-
+    core.info(annotations);
     // Parse to JSON to handle safely
     const annotationsAsJson = JSON.parse(annotations);
     const annotationValidationErrors =
