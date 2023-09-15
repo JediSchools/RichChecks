@@ -133,18 +133,20 @@ async function run() {
       core.debug(annotations);
     }
 
-    // Parse to JSON to handle safely
-    const annotationsAsJson = JSON.parse(annotations);
-    const annotationValidationErrors =
-      validateAnnotationsArray(annotationsAsJson);
+    if (annotations) {
+      // Parse to JSON to handle safely
+      const annotationsAsJson = JSON.parse(annotations);
+      const annotationValidationErrors =
+        validateAnnotationsArray(annotationsAsJson);
 
-    if (annotationValidationErrors.length <= 0) {
-      core.info("successfully validated annotations");
-      body.output.annotations = annotationsAsJson;
-    } else {
-      core.error(annotationValidationErrors.join(" \n "));
-      core.debug(annotationsAsJson);
-      core.warning("Annotations parsing error, did not add");
+      if (annotationValidationErrors.length <= 0) {
+        core.info("successfully validated annotations");
+        body.output.annotations = annotationsAsJson;
+      } else {
+        core.error(annotationValidationErrors.join(" \n "));
+        core.debug(annotationsAsJson);
+        core.warning("Annotations parsing error, did not add");
+      }
     }
 
     if (core.isDebug()) {
@@ -189,6 +191,7 @@ async function run() {
 
     core.endGroup();
   } catch (error) {
+    console.log(error);
     if (error.includes("Resource not accessible by integration")) {
       core.error(
         "Ensure permissions are correct, was not able to create check"
@@ -196,6 +199,7 @@ async function run() {
     } else {
       core.error(`Error ${error}, action did not succeed`);
     }
+    core.endGroup();
   }
 }
 
