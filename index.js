@@ -1,6 +1,5 @@
 const core = require("@actions/core");
 const github = require("@actions/github");
-const { Octokit } = require("@octokit/rest");
 const { validateAnnotationsArray } = require("./validateAnnotationsArray");
 const { validateImagesArray } = require("./validateImagesArray");
 
@@ -23,9 +22,7 @@ const annotations = core.getInput("annotations");
 const token = core.getInput("github-token");
 
 // initiate the client with the token
-const octokit = new Octokit({
-  auth: token,
-});
+const octokit = github.getOctokit(token);
 
 // Test inputs and if they fall back to defaults, inform the user that we've made an assumption here
 let name = core.getInput("name");
