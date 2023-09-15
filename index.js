@@ -1,5 +1,6 @@
 const core = require("@actions/core");
-const github = require("@actions/github");
+const { context } = require("@actions/github");
+const { GitHub } = require("@actions/github/lib/utils");
 const { retry } = require("@octokit/plugin-retry");
 const { throttling } = require("@octokit/plugin-throttling");
 const { validateAnnotationsArray } = require("./validateAnnotationsArray");
@@ -24,10 +25,12 @@ const annotations = core.getInput("annotations");
 const token = core.getInput("github-token");
 
 // Create a custom Octokit constructor with the retry and throttling plugins
-const MyOctokit = github.plugin(retry, throttling);
+const OctokitWithPlugins = GitHub.plugin(retry, throttling);
+
+console.log("created kit");
 
 // initiate the client with the token and plugins
-let octokit = new MyOctokit({
+const octokit = new OctokitWithPlugins({
   auth: token,
   // Enable retries and customize strategy
   retry: {
@@ -47,6 +50,16 @@ let octokit = new MyOctokit({
         return true;
       }
     },
+    onSecondaryRateLimit: (retryAfter, options) => {
+      octokit.log.warn(
+        `Request quota exhausted for your secondary request ${options.method} ${options.url}`
+      );
+      if (options.request.retryCount === 0) {
+        // only retries once
+        console.log(`Secondary retrying after ${retryAfter} seconds!`);
+        return true;
+      }
+    },
     onAbuseLimit: (retryAfter, options) => {
       // does not retry, only logs a warning
       octokit.log.warn(
@@ -61,10 +74,10 @@ let name = core.getInput("name");
 if (name == "") {
   // we're creating a warning for the property and advising to the default
   core.warning("no name set, using repo name");
-  name = github.context.repo.name;
+  name = context.repo.name;
 }
 
-const pull_request = github.context.payload.pull_request;
+const pull_request = context.payload.pull_request;
 let commitSha = "";
 if (pull_request !== undefined) {
   commitSha = pull_request.head_sha;
@@ -73,7 +86,7 @@ if (pull_request !== undefined) {
 if (commitSha == "" || commitSha === undefined) {
   // we're creating a warning for the property and advising to the default
   core.warning("no pull request detected, using head sha");
-  commitSha = github.context.sha;
+  commitSha = context.sha;
 }
 
 // get the value for the neutral
@@ -201,7 +214,7 @@ async function run() {
     if (existingCheckRunId === "") {
       core.info("creating a check run");
       // Create the check
-      const createCheck = await octokit.checks.create(body);
+      const createCheck = await octokit.rest.checks.create(body);
       checkRunId = createCheck.data.id;
       core.info(`created a check run with the id of ${checkRunId}`);
     } else {
@@ -210,7 +223,7 @@ async function run() {
       body.check_run_id = existingCheckRunId;
 
       // update the check
-      const updateCheck = await octokit.checks.update(body);
+      const updateCheck = await octokit.rest.checks.update(body);
       checkRunId = updateCheck.data.id;
       core.info(`updated a check run with the id of ${checkRunId}`);
     }
@@ -220,14 +233,7 @@ async function run() {
 
     core.endGroup();
   } catch (error) {
-    console.log(error);
-    if (error.includes("Resource not accessible by integration")) {
-      core.error(
-        "Ensure permissions are correct, was not able to create check"
-      );
-    } else {
-      core.error(`Error ${error}, action did not succeed`);
-    }
+    core.error(`Error ${error}, action did not succeed`);
     core.endGroup();
   }
 }

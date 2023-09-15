@@ -18,6 +18,7 @@
   "scripts": {
     "lint": "eslint .",
     "build": "webpack",
+    "test": "webpack && act -j test",
     "all": "npm run lint && npm run build"
   },
   "repository": {
