@@ -128,7 +128,11 @@ async function run() {
     core.endGroup();
 
     core.startGroup("validate annotations and images");
-    core.info(annotations);
+
+    if (core.isDebug()) {
+      core.debug(annotations);
+    }
+
     // Parse to JSON to handle safely
     const annotationsAsJson = JSON.parse(annotations);
     const annotationValidationErrors =
@@ -143,15 +147,21 @@ async function run() {
       core.warning("Annotations parsing error, did not add");
     }
 
-    // Parse to JSON to handle safely
-    const imageAsJson = JSON.parse(images);
-    const imageValidationErrors = validateImagesArray(imageAsJson);
+    if (core.isDebug()) {
+      core.debug(images);
+    }
 
-    if (imageValidationErrors.length <= 0) {
-      core.info("successfully validated images");
-      body.output.images = imageAsJson;
-    } else {
-      core.warning("Images parsing error, did not add");
+    if (images) {
+      // Parse to JSON to handle safely
+      const imageAsJson = JSON.parse(images);
+      const imageValidationErrors = validateImagesArray(imageAsJson);
+
+      if (imageValidationErrors.length <= 0) {
+        core.info("successfully validated images");
+        body.output.images = imageAsJson;
+      } else {
+        core.warning("Images parsing error, did not add");
+      }
     }
 
     core.endGroup();
