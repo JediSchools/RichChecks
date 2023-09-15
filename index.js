@@ -80,7 +80,7 @@ if (name == "") {
 const pull_request = context.payload.pull_request;
 let commitSha = "";
 if (pull_request !== undefined) {
-  commitSha = pull_request.head_sha;
+  commitSha = pull_request.head.sha;
 }
 
 if (commitSha == "" || commitSha === undefined) {
