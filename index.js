@@ -23,40 +23,38 @@ const images = core.getInput("images");
 const annotations = core.getInput("annotations");
 const token = core.getInput("github-token");
 
+// Create a custom Octokit constructor with the retry and throttling plugins
+const MyOctokit = github.GitHub.plugin(retry, throttling);
+
 // initiate the client with the token and plugins
-let octokit = github.getOctokit(
-  {
-    auth: token,
-    // Enable retries and customize strategy
-    retry: {
-      do: true, // enable retries
-      retryAfter: 30, // time to wait between retries in seconds
-      maxRetries: 5, // max number of retries
+let octokit = new MyOctokit({
+  auth: token,
+  // Enable retries and customize strategy
+  retry: {
+    do: true, // enable retries
+    retryAfter: 30, // time to wait between retries in seconds
+    maxRetries: 5, // max number of retries
+  },
+  // Enable throttling/rate-limiting
+  throttle: {
+    onRateLimit: (retryAfter, options) => {
+      octokit.log.warn(
+        `Request quota exhausted for your request ${options.method} ${options.url}`
+      );
+      if (options.request.retryCount === 0) {
+        // only retries once
+        console.log(`Retrying after ${retryAfter} seconds!`);
+        return true;
+      }
     },
-    // Enable throttling/rate-limiting
-    throttle: {
-      onRateLimit: (retryAfter, options) => {
-        core.warning(
-          `Request quota exhausted for your request ${options.method} ${options.url}`
-        );
-        if (options.request.retryCount === 0) {
-          // only retries once
-          console.log(`Retrying after ${retryAfter} seconds!`);
-          return true;
-        }
-      },
-      onAbuseLimit: (retryAfter, options) => {
-        // does not retry, only logs a warning
-        core.warning(
-          `Abuse detected for your request ${options.method} ${options.url}`
-        );
-      },
+    onAbuseLimit: (retryAfter, options) => {
+      // does not retry, only logs a warning
+      octokit.log.warn(
+        `Abuse detected for your request ${options.method} ${options.url}`
+      );
     },
   },
-  {},
-  retry, // retry plugin being added to the instance
-  throttling // throttling plugin being added to the instance
-);
+});
 
 // Test inputs and if they fall back to defaults, inform the user that we've made an assumption here
 let name = core.getInput("name");
