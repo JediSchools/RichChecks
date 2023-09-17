@@ -8,7 +8,7 @@ A GitHub Action that enables you to update or create rich checks. Part of the te
 
 - Create a new check run.
 - Update an existing check run.
-- Support for annotations and images in checks.
+- Support for annotations and images in checks.hgf
 - Configurable fail behaviors based on check conclusions.
 
 ### Prerequisites
