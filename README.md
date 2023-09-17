@@ -8,7 +8,7 @@ sdfsdfsdf
 
 - Create a new check run.
 - Update an existing check run.
-- Support for annotations and images in checks.hgfdfgdfgdfgdfg
+- Support for annotations and images in checks.hgfdfgdfgdfgdfgfdgdfgdfg
 - Configurable fail behaviors based on check conclusions.
 
 ### Prerequisites
