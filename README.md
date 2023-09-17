@@ -3,18 +3,18 @@
 ![License](https://img.shields.io/github/license/JediSchools/RichChecks)
 
 A GitHub Action that enables you to update or create rich checks. Part of the teachings from the *GitHub Mastery Book*.
-
+sdfsdfsdf
 ### Features
 
 - Create a new check run.
 - Update an existing check run.
-- Support for annotations and images in checks.
+- Support for annotations and images in checks.hgfdfgdfgdfgdfgfdgdfgdfg
 - Configurable fail behaviors based on check conclusions.
 
 ### Prerequisites
 
 Ensure you have a workflow set up on your repository. For more details, refer to [Creating a workflow file](https://docs.github.com/en/actions/learn-github-actions/introduction-to-github-actions#create-an-example-workflow).
-
+dfgdsfgdfgdfg
 ### Usage
 
 ```yaml
